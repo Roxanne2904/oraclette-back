@@ -1,0 +1,45 @@
+@startuml register
+
+actor "Utilisateur" as User
+participant "Navigateur" as Front
+participant "API/Back" as Back
+participant "Provider" as Provider
+database "BDD" as BDD
+
+title "Inscription (Provider)"
+
+autonumber
+
+User -> Front: Clique sur le bouton "S'inscrire"
+activate Front
+
+Front -> Back: Envoie une requête pour créer l'user
+activate Back
+
+Back -> Provider: Envoie une requête au provider
+activate Provider
+
+Provider -> User: Demande la permission à l'utilisateur
+
+User -> Provider: Donne la permission au provider
+
+Provider -> Back: Renvoie un code
+
+Back -> Provider: Demande des données au provider avec le code
+
+Provider -> Back: Vérifie le code, envoie les données utilisateur si valide
+deactivate Provider
+
+Back -> BDD: Crée l'utilisateur avec les données reçues
+
+Back -> Front: Enregistre un cookie session avec l'user id encryptée
+
+Front -> User: Renvoie l'user sur la home
+
+User -> Front: Intéragit avec les services
+
+Front -> Back: Vérifie l'user avec le cookie d'user id encryptée
+deactivate Front
+deactivate Back
+
+@enduml

@@ -1,0 +1,30 @@
+@startuml event-register
+
+actor "Utilisateur" as User
+participant "Navigateur" as Front
+participant "API/Back" as Back
+database "BDD" as BDD
+
+title "Inscription à un événement"
+
+autonumber
+
+User -> Front: Clique sur le bouton "S'inscrire"
+activate Front
+
+Front -> Back: Envoie une requête pour s'inscrire à l'événement
+activate Back
+
+Back -> BDD: Met à jour la table "inscription_evenements"
+activate BDD
+
+BDD -> Back: Confirme le succès
+deactivate BDD
+deactivate Back
+
+Back -> Front: Change le state du bouton
+deactivate Front
+
+deactivate Back
+
+@enduml

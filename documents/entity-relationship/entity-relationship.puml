@@ -1,0 +1,60 @@
+@startuml entity-relationship
+
+top to bottom direction
+skinparam linetype ortho
+
+entity User {
+  + id: INT <<PK>>
+  --
+  * firstname: TEXT
+  * lastname: TEXT
+  * email: TEXT
+  birthdate: DATE
+  gender: ENUM
+  password: TEXT
+  password_reset_token: TEXT
+  provider: TEXT
+  provider_id: TEXT
+  is_admin: BOOL
+}
+
+entity Event {
+  + id: INT <<PK>>
+  --
+  * description: TEXT
+  * adress: TEXT
+  * zip_code: TEXT
+  * city: TEXT
+  * available_slot: INT
+  * status: INT
+  * date: DATE
+  gender: ENUM
+  image_name: TEXT
+  --
+  * created_by: INT <<FK>>
+}
+
+entity EventRegister {
+  * status: INT
+  * event_id: INT  <<FK>>
+  * register_by: INT <<FK>>
+}
+
+entity Message {
+  + id: INT <<PK>>
+  --
+  * message: TEXT
+  * disabled: BOOL
+  --
+  * event_id: INT <<FK>>
+  * writed_id: INT <<FK>>
+}
+
+User ||--o{ Event: creates
+
+User ||--o{ Message: writes
+Message }o--|| Event: isFor
+
+EventRegister }o--|| User: registersFor
+EventRegister }o--|| Event: isFor
+@enduml

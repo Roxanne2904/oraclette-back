@@ -1,0 +1,80 @@
+@startuml usecase
+
+left to right direction
+
+actor Visiteur as v
+actor Utilisateur as u
+actor Organisateur as o
+actor Participant as p
+actor Administrateur as a
+
+package "Fonctionnalités principales" {
+  usecase "Créer un compte" as createAccount
+  usecase "Authentification avec providers" as authProviders
+  usecase "Afficher la liste des événements" as seeEvents
+  usecase "Pouvoir contacter le site \n afin d'envoyer un mail au propriétaire du site" as contact
+  usecase "Pouvoir consulter les informations relatives à l'application" as legalNotice
+  usecase "Accéder à la page de création d'événement \n afin de créer un événement" as createEvent
+  usecase "Accéder à sa page "Mon profil" en cliquant sur son nom \n afin de voir la liste des événements" as seeMyEvents
+  usecase "Éditer ses informations" as editProfileInfos
+  usecase "Liker une photo" as likePicture
+  usecase "S'inscrire à un événement" as subscribeToEvent
+  usecase "Accepter un participant" as acceptParticipant
+  usecase "Modifier un événement" as editEvent
+  usecase "Exclure un participant" as kickParticipant
+  usecase "Masquer un message" as hideMessage
+  usecase "Ajouter une photo" as addPicture
+  usecase "Discuter à propos d'un événement" as eventTalk
+  usecase "Quitter un événement" as quitEvent
+}
+
+package "Fonctionnalités évolutives" {
+  usecase "S'abonner à un utilisateur" as subscribeToUser
+  usecase "Réinitialiser son mot de passe" as resetPassword
+  usecase "Afficher le fil d'actu avec les abonnés" as subscriptionFeed
+  usecase "Proposer un lieu public à l'administration" as suggestLocation
+  usecase "Valider un lieu public" as confirmLocation
+  usecase "Modérer un événement" as modEvent
+  usecase "Définir ce qui est apporté pour l'événement" as defineContributions
+  usecase "Valider ma participation" as confirmParticipation
+  usecase "Discuter en instantané" as instantMessaging
+  usecase "Voir photos des événements du mois" as seePictures
+  usecase "Voir l'événement de mois précédent affiché sur la home" as seePastMonthTopEvent
+}
+
+v --> createAccount
+v --> authProviders
+v --> seePictures
+v --> seeEvents
+v --> seePastMonthTopEvent
+v --> contact
+v --> legalNotice
+v --> resetPassword
+
+u --> createEvent
+u --> seeMyEvents
+u --> editProfileInfos
+u --> likePicture
+u --> subscribeToEvent
+u --> subscribeToUser
+u --> subscriptionFeed
+u --> suggestLocation
+
+o --> acceptParticipant
+o --> editEvent
+o --> kickParticipant
+o --> hideMessage
+o --> addPicture
+
+p --> eventTalk
+p --> quitEvent
+p --> confirmParticipation
+p --> defineContributions
+p --> instantMessaging
+
+a --> confirmLocation
+a --> modEvent
+
+u <|-- p
+p <|-- o
+@enduml

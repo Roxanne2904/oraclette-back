@@ -1,0 +1,45 @@
+version: "3.8"
+services:
+  app:
+    image: node:latest
+    container_name: oraclette_node
+    restart: always
+    ports:
+      - "${PORT_OUT}:${PORT_EXPRESS}"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    working_dir: /app
+    environment:
+      - NODE_ENV=development
+    command: "npm start"
+    depends_on:
+      - db
+
+  db:
+    image: mariadb:latest
+    container_name: oraclette_db
+    restart: always
+    environment:
+      MARIADB_DATABASE: ${DEV_DB_NAME}
+      MARIADB_USER: ${DEV_DB_USERNAME}
+      MARIADB_PASSWORD: ${DEV_DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${DEV_DB_ROOT_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: oraclette_phpmyadmin
+    restart: always
+    ports:
+      - "${PORT_PMA}:80"
+    environment:
+      PMA_HOST: ${DEV_DB_HOST}
+      PMA_USER: ${DEV_DB_USERNAME}
+      PMA_PASSWORD: ${DEV_DB_PASSWORD}
+    depends_on:
+      - db
+
+volumes:
+  db_data:

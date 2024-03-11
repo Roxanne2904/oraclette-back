@@ -1,0 +1,6 @@
+node_modules
+db_data
+.env
+public_pictures
+.vscode/
+coverage
