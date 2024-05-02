@@ -5,9 +5,10 @@ module.exports = (sequelize, DataTypes) => {
 		static associate(models) {
 			EventRegister.belongsTo(models.Event, {
 				foreignKey: "event_id",
+				as: "register",
 			});
 			EventRegister.belongsTo(models.User, {
-				foreignKey: "register_by",
+				foreignKey: "user_id",
 				as: "registrant",
 			});
 		}
@@ -16,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
 			const event = await this.findOne({
 				where: {
 					event_id: eventId,
-					register_by: userId,
+					user_id: userId,
 				},
 			});
 
@@ -45,7 +46,7 @@ module.exports = (sequelize, DataTypes) => {
 				onUpdate: "CASCADE",
 				onDelete: "CASCADE",
 			},
-			register_by: {
+			user_id: {
 				type: DataTypes.INTEGER.UNSIGNED,
 				primaryKey: true,
 				allowNull: false,

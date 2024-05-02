@@ -11,7 +11,7 @@ module.exports = () => async (req, res, next) => {
 
 		const isUserRegisterToEvent = await EventRegister.checkIfUserRegistered(
 			eventId,
-			res.userId
+			res.currentUser.id
 		);
 
 		if (isUserRegisterToEvent) {

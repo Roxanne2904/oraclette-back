@@ -3,13 +3,12 @@ const errorHandler = require("../../middlewares/errorHandler");
 const eventController = require("../../controllers/Event");
 const verifyToken = require("../../middlewares/verifyToken");
 const { checkGender } = require("../../middlewares/checkGender.js");
+
 const EventRouter = express.Router();
 
 // Schemas
 
-/**
- * @name Event
- * @description An Event is created with the following parameters :
+/** An Event is created with the following parameters
  * @typedef {object} Event
  * @property {number} id - event id
  * @property {string} description - event description
@@ -21,12 +20,10 @@ const EventRouter = express.Router();
  * @property {string} status - event status - enum:open,canceled,ended
  * @property {string} gender - user gender - enum:female,male,nonbinary
  * @property {string} image_url - event image URL
- * @property {number} created_by - user id
+ * @property {number} user_id - Create by user id
  */
 
-/**
- * @name EventUpdate
- * @description An Event is created with the following parameters :
+/** An Event is update with the following parameters
  * @typedef {object} EventUpdate
  * @property {string} description - event description
  * @property {string} adress - event address
@@ -37,12 +34,10 @@ const EventRouter = express.Router();
  * @property {string} status - event status - enum:open,canceled,ended
  * @property {string} gender - user gender - enum:female,male,nonbinary
  * @property {string} base64_picture - Picture on base64
- * @property {number} created_by - user id
+ * @property {number} user_id - Create by user_id
  */
 
-/**
- * @name EventCreate
- * @description An Event is created with the following parameters :
+/** An Event is created with the following parameters.
  * @typedef {object} EventCreate
  * @property {string} description.required - event description
  * @property {string} adress.required - event address
@@ -53,24 +48,18 @@ const EventRouter = express.Router();
  * @property {"female" | "male" | "nonbinary"} gender - user gender
  */
 
-/**
- * @name EventError
- * @description Error object
+/** Error object
  * @typedef {object} EventError
  * @property {string} message - error message
  */
 
-/**
- * @name EventDetailSuccess
- * @description Success object
+/** Success object
  * @typedef {object} EventDetailSuccess
  * @property {string} message - success message
  * @property {EventDetail} data - event detail
  */
 
-/**
- * @name EventDetail
- * @description The detail of an event.
+/** The detail of an event.
  * @typedef {object} EventDetail
  * @property {number} id - event id
  * @property {string} description - event description
@@ -81,8 +70,8 @@ const EventRouter = express.Router();
  * @property {date} date - event date
  * @property {string} status - event status -  enum:open,canceled,ended
  * @property {string} gender - user gender -  enum:female,male,nonbinary
- * @property {string} image_url - event image_name
- * @property {number} created_by - user id
+ * @property {string} image_url - event image_url
+ * @property {number} user_id - Create by user_id
  * @property {UserData} creator - event creator
  * @property {Array<UserData>} participants - event participants
  */
@@ -98,10 +87,11 @@ const EventRouter = express.Router();
  * @security BearerAuth
  *
  * @param {string} city.query - Optional city
- * @param {string} lat.query - Optional latitude (if inclute lon, require lat)
- * @param {string} lon.query - Optional longitude (if inclute lat, require lon)
+ * @param {string} latitude.query - Optional latitude (if inclute lon, require lat)
+ * @param {string} longitude.query - Optional longitude (if inclute lat, require lon)
  * @param {number} page.query - Page number
  * @param {number} eventPerPage.query - Event per page
+ * @param {string} gender.query - Event gender - enum:female,male,nonbinary
  *
  * @typedef {object} Success - Success response
  * @property {string} message - A success message
@@ -110,12 +100,14 @@ const EventRouter = express.Router();
  * @returns {EventError} 400 - Invalid filter param
  * @returns {EventError} 500 - Error
  */
-EventRouter.get("/", checkGender, errorHandler(eventController.index));
+EventRouter.get("/", errorHandler(eventController.index));
 
 /**
  * GET /events/{id}
  * @summary Get an event
  * @tags Events
+ *
+ * @security BearerAuth
  *
  * @param {number} id.path.required - event identify
  *
@@ -123,7 +115,7 @@ EventRouter.get("/", checkGender, errorHandler(eventController.index));
  * @returns {EventError} 400 - Missing or invalid event id
  * @returns {EventError} 404 - No event found
  */
-EventRouter.get("/:id", errorHandler(eventController.show));
+EventRouter.get("/:id", verifyToken(), errorHandler(eventController.show));
 
 /**
  * POST /events
@@ -174,10 +166,31 @@ EventRouter.put("/:id/close", errorHandler(eventController.delete));
  * @summary Like an event
  * @tags Events
  * @param {number} id.path.required - Event identify
- * @returns {object} 200 - An array of events
+ * @returns {object} 200 - OK
  * @returns {EventError} 204 - No events found message
  * @returns {EventError} 500 - Error
  */
-EventRouter.post("/:id/like", errorHandler(eventController.like));
+EventRouter.post(
+	"/:id/like",
+	verifyToken(),
+	errorHandler(eventController.like)
+);
+
+module.exports = { EventRouter };
+
+/**
+ * DELETE /events/{id}/like
+ * @summary Dislike an event
+ * @tags Events
+ * @param {number} id.path.required - Event identify
+ * @returns {object} 200 - OK
+ * @returns {EventError} 204 - No events found message
+ * @returns {EventError} 500 - Error
+ */
+EventRouter.delete(
+	"/:id/like",
+	verifyToken(),
+	errorHandler(eventController.dislike)
+);
 
 module.exports = { EventRouter };

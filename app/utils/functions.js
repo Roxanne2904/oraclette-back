@@ -47,26 +47,15 @@ module.exports = {
 	},
 
 	isDatePast(date) {
-		let today = new Date();
-		let eventDate;
+		let now = new Date();
 
-		if (typeof date === "string") {
-			eventDate = new Date(date);
-		} else if (date instanceof Date) {
-			eventDate = new Date(date.getTime());
-		} else {
-			throw new Error("Invalid date format");
-		}
-
-		eventDate.setHours(23, 59, 59, 999);
-
-		if (eventDate < today) {
+		if (date < now) {
 			return true;
 		}
 		return false;
 	},
 
-	async getUserId(token) {
+	getUserId(token) {
 		const userId = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET).userId;
 		return userId;
 	},
@@ -82,21 +71,6 @@ module.exports = {
 		};
 	},
 
-	async removeBearerFromToken(bearerToken, res) {
-		if (!bearerToken) {
-			return res
-				.status(400)
-				.json({ error: "Access token is missing in headers" });
-		}
-
-		const accessToken = bearerToken.split("Bearer")[1]?.trim();
-
-		if (!accessToken) {
-			return res.status(401).json({ error: "Unauthorized" });
-		}
-		return accessToken;
-	},
-
 	storePicture(base64Picture) {
 		return new Promise((resolve, reject) => {
 			const base64Data = base64Picture.split(";base64,").pop();
@@ -104,12 +78,14 @@ module.exports = {
 
 			sharp(buffer)
 				.resize(1920, 1080, {
+					// Rédimensionne l'image pour limiter l'usage disque
 					fit: sharp.fit.inside,
 					withoutEnlargement: true,
 				})
-				.toFormat("png", { quality: 100, force: true }) // Convertir en PNG avec une qualité de 100%
+				// Convertir l'image en PNG sans perte de qualiter
+				.toFormat("png", { quality: 100, force: true })
 				.removeAlpha() // Supprime la couche alpha
-				.toColourspace("srgb") // Assurez-vous que l'espace de couleur est sRGB
+				.toColourspace("srgb") // Convertie l'image en sRGB
 				.toBuffer()
 				.then((processedBuffer) => {
 					const uuid = uuidv4();

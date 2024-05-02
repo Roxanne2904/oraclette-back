@@ -1,0 +1,14 @@
+DF, 11 Message, 0N Utilisateur
+Message: réf. message, message, est masqué, date & heure
+DF, 11 Message, 0N Evènement
+Code postal: réf ville, code postal, nom ville, latitude, longitude
+
+Utilisateur: réf. utilisateur, nom, prénom, email, date de naissance, mot de passe, token de reset mdp, provider nom, provider token, genre, est admin
+PARTICIPER, 0N Evènement, 0N Utilisateur: statut
+Evènement: réf. évènement, description, adresse, code postal, ville, latitude, longitude, place disponible, date & heure, statut, genre
+:
+
+AIMER, 0N Photo, 0N Utilisateur
+Photo: réf photo, nom du fichier
+DF, 01 Photo, 11 Evènement
+:

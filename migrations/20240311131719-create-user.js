@@ -21,12 +21,6 @@ module.exports = {
 				type: Sequelize.STRING(256),
 				allowNull: false,
 				unique: true,
-				validate: {
-					isEmail: {
-						args: true,
-						msg: "L'email fourni n'est pas valide.",
-					},
-				},
 			},
 			birthdate: {
 				type: Sequelize.DATEONLY,
@@ -44,10 +38,12 @@ module.exports = {
 				allowNull: true,
 			},
 			provider: {
+				// TODO : Changer pour provider_name
 				type: Sequelize.TEXT,
 				allowNull: true,
 			},
 			provider_id: {
+				// TODO : Changer pour provider_token
 				type: Sequelize.TEXT,
 				allowNull: true,
 			},

@@ -11,6 +11,7 @@ module.exports = (controller) => async (req, res, next) => {
 			res.status(401).json({ message: error.message });
 		} else {
 			res.status(500).json({ message: error.message });
+			console.log(error);
 		}
 	}
 };

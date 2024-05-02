@@ -1,60 +1,89 @@
-@startuml entity-relationship
+@startuml
+' hide the spot
+' hide circle
 
-top to bottom direction
+' avoid problems with angled crows feet
 skinparam linetype ortho
 
-entity User {
-  + id: INT <<PK>>
+entity "User" as user {
+  *id : number <<generated>>
   --
-  * firstname: TEXT
-  * lastname: TEXT
-  * email: TEXT
-  birthdate: DATE
-  gender: ENUM
-  password: TEXT
-  password_reset_token: TEXT
-  provider: TEXT
-  provider_id: TEXT
-  is_admin: BOOL
+  firstname : text
+  lastname : text
+  email : text [unique]
+  birthdate : date
+  password : text
+  password_reset_token : text
+  provider : text
+  provider_id : text
+  gender : enum
+  is_admin : boolean
 }
 
-entity Event {
-  + id: INT <<PK>>
+entity "Message" as message {
+  *id : number <<generated>>
   --
-  * description: TEXT
-  * adress: TEXT
-  * zip_code: TEXT
-  * city: TEXT
-  * available_slot: INT
-  * status: INT
-  * date: DATE
-  gender: ENUM
-  image_name: TEXT
+  message : text
+  disabled: boolean
   --
-  * created_by: INT <<FK>>
+  *event_id : number <<FK>>
+  *user_id : number <<FK>>
 }
 
-entity EventRegister {
-  * status: INT
-  * event_id: INT  <<FK>>
-  * register_by: INT <<FK>>
+entity "Photo" as photo {
+  *id : number <<generated>>
+  --
+  file_name : text
+  --
+  *event_id : number <<FK>>
 }
 
-entity Message {
-  + id: INT <<PK>>
+entity "Event" as event {
+  *id : number <<generated>>
   --
-  * message: TEXT
-  * disabled: BOOL
+  *user_id : number <<FK>>
+  description  : text
+  adress : text
+  zip_code : text
+  city : text
+  latitude : float
+  longitude : float
+  available_slot : number
+  date : date
+  status : enum
+  gender : enum
   --
-  * event_id: INT <<FK>>
-  * writed_id: INT <<FK>>
 }
 
-User ||--o{ Event: creates
 
-User ||--o{ Message: writes
-Message }o--|| Event: isFor
+entity "ZipCode" as zipcode {
+  *id : number <<generated>>
+  --
+  zip_code : text
+  name : text
+  latitude : float
+  longitude : float
+}
 
-EventRegister }o--|| User: registersFor
-EventRegister }o--|| Event: isFor
+entity "EventRegister" as eventRegister {
+  *event_id : number <<FK>>
+  *user_id : number <<FK>>
+  --
+  status : enum
+}
+
+entity "PhotoLike" as photoLike {
+  *photo_id : number <<FK, Primary>>
+  *user_id : number <<FK, Primary>>
+}
+
+
+user ||--o{ message
+user ||--o{ event
+user }o-- eventRegister
+eventRegister --o{ event
+message |o--|| event
+photo |o--|| event
+photo }o-- photoLike
+photoLike --o{ user
 @enduml

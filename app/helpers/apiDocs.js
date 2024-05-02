@@ -8,7 +8,7 @@ const options = {
 	},
 	servers: [
 		{
-			url: "http://localhost:8080/api/v1",
+			url: `http://localhost:${process.env.PORT_OUT}/api/v1`,
 			description: "Development server",
 		},
 		{

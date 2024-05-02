@@ -1,94 +1,47 @@
-const Message = require("../models").Message;
-const { User, Event } = require("../models");
+const messageService = require("../services/Message");
 
 module.exports = {
 	async addMessage(req, res) {
-		const message = await Message.create({
-			message: req.body.message,
-			event_id: parseInt(req.params.eventId),
-			writed_by: res.userId,
-		});
+		const message = await messageService.create(req, res);
 
 		if (!message) {
 			return res.status(404).json({
-				error: "Message registration failed",
+				error: "Register this message has failed",
 			});
 		}
 
 		return res.json({
-			message: "Message correctly added",
-			data: message,
+			message: "This message has been correctly added",
 		});
 	},
 	async updateMessage(req, res) {
-		const updateMessage = await Message.update(
-			{ message: req.body.message },
-			{
-				where: {
-					id: req.params.commentId,
-				},
-			}
-		);
+		const updateMessage = await messageService.update(req);
 
 		if (!updateMessage) {
 			return res.status(404).json({
-				error: "Message update failed",
+				error: "Update this message has failed",
 			});
 		}
 
 		return res.json({
-			message: "Message correctly updated",
-			data: updateMessage,
+			message: "This message has been correctly updated",
 		});
 	},
 	async disabledMessage(req, res) {
-		const disabledMessage = await Message.update(
-			{ disabled: true },
-			{
-				where: {
-					id: req.params.commentId,
-				},
-			}
-		);
+		const disabledMessage = await messageService.disabled(req);
 
 		if (!disabledMessage) {
 			return res.status(404).json({
-				error: "Message disabled failed",
+				error: "Disable this message has failed",
 			});
 		}
 
 		return res.json({
-			message: "Message correctly disabled",
-			data: disabledMessage,
+			message: "This message has been correctly deactivated",
 		});
 	},
 	async getMessages(req, res) {
-		const messages = await Message.findAll({
-			where: {
-				event_id: req.params.eventId,
-			},
-			include: [
-				{
-					model: User,
-					as: "user",
-					attributes: {
-						exclude: [
-							"password",
-							"provider",
-							"provider_id",
-							"password_reset_token",
-							"createdAt",
-							"updatedAt",
-						],
-					},
-				},
-				{
-					model: Event,
-					as: "event",
-					attributes: ["id", "created_by"],
-				},
-			],
-		});
+		const messages = await messageService.get(req);
 
 		if (!messages) {
 			return res.status(404).json({
@@ -97,7 +50,7 @@ module.exports = {
 		}
 
 		return res.json({
-			message: "Messages correctly found",
+			message: "Messages have been found correctly",
 			data: messages,
 		});
 	},

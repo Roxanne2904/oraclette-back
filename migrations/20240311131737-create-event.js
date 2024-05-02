@@ -12,64 +12,34 @@ module.exports = {
 			description: {
 				type: Sequelize.TEXT,
 				allowNull: false,
-				validate: {
-					notEmpty: true,
-				},
 			},
 			adress: {
 				type: Sequelize.TEXT,
 				allowNull: false,
-				validate: {
-					notEmpty: true,
-				},
 			},
 			zip_code: {
 				type: Sequelize.STRING(5),
 				allowNull: false,
-				validate: {
-					is: {
-						args: ["^[0-9]{5}$"],
-						msg: "Le format du code postal est invalide.",
-					},
-					notEmpty: true,
-				},
 			},
 			city: {
 				type: Sequelize.TEXT,
 				allowNull: false,
-				validate: {
-					notEmpty: true,
-				},
 			},
-			position_lat: {
+			latitude: {
 				type: Sequelize.FLOAT,
 				allowNull: true,
 			},
-			position_lon: {
+			longitude: {
 				type: Sequelize.FLOAT,
 				allowNull: true,
 			},
 			available_slot: {
 				type: Sequelize.SMALLINT.UNSIGNED,
 				allowNull: false,
-				validate: {
-					min: 1,
-				},
 			},
 			date: {
 				type: Sequelize.DATEONLY,
 				allowNull: false,
-				validate: {
-					isDate: true,
-					isAfterToday(value) {
-						if (new Date(value) <= new Date()) {
-							return this.createError({
-								path: "date",
-								message: "La date doit être postérieure à aujourd'hui.",
-							});
-						}
-					},
-				},
 			},
 			status: {
 				type: Sequelize.ENUM("open", "canceled", "ended"),
@@ -81,14 +51,7 @@ module.exports = {
 				allowNull: true,
 				defaultValue: "nonbinary",
 			},
-			image_name: {
-				type: Sequelize.TEXT,
-				allowNull: true,
-				validate: {
-					is: ["^[a-z]+$", "i"],
-				},
-			},
-			created_by: {
+			user_id: {
 				type: Sequelize.INTEGER.UNSIGNED,
 				allowNull: false,
 				references: {

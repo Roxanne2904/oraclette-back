@@ -19,7 +19,7 @@ module.exports = {
 				onUpdate: "CASCADE",
 				onDelete: "CASCADE",
 			},
-			register_by: {
+			user_id: {
 				type: Sequelize.INTEGER.UNSIGNED,
 				primaryKey: true,
 				allowNull: false,

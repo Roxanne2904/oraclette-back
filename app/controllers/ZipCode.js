@@ -3,6 +3,7 @@ const { Op } = require("sequelize");
 
 module.exports = {
 	async index(req, res) {
+		fgsdfsdf;
 		const searchTerm = req.body.city; // ou un autre paramètre de votre choix
 
 		const ZipCodes = await ZipCode.findAll({

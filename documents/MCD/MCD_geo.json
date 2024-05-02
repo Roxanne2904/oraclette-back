@@ -1,0 +1,41 @@
+{
+	"width": 484,
+	"height": 474,
+	"cx": [
+		["DF0", 74],
+		["MESSAGE", 215],
+		["DF1", 345],
+		["CODE_POSTAL", 434],
+		["UTILISATEUR", 74],
+		["PARTICIPER", 215],
+		["EVENEMENT", 345],
+		["AIMER", 74],
+		["PHOTO", 215],
+		["DF2", 345]
+	],
+	"cy": [
+		["DF0", 68],
+		["MESSAGE", 68],
+		["DF1", 68],
+		["CODE_POSTAL", 68],
+		["UTILISATEUR", 262],
+		["PARTICIPER", 262],
+		["EVENEMENT", 262],
+		["AIMER", 431],
+		["PHOTO", 431],
+		["DF2", 431]
+	],
+	"shift": [
+		["DF0,MESSAGE,0", 0],
+		["DF0,UTILISATEUR,0", 0],
+		["DF1,MESSAGE,0", 0],
+		["DF1,EVENEMENT,0", 0],
+		["PARTICIPER,EVENEMENT,0", 0],
+		["PARTICIPER,UTILISATEUR,0", 0],
+		["AIMER,PHOTO,0", 0],
+		["AIMER,UTILISATEUR,0", 0],
+		["DF2,PHOTO,0", 0],
+		["DF2,EVENEMENT,0", 0]
+	],
+	"ratio": []
+}

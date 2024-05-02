@@ -6,7 +6,6 @@ module.exports = (sequelize, DataTypes) => {
 		toJSON() {
 			return {
 				...this.get(),
-				id: undefined,
 				createdAt: undefined,
 				updatedAt: undefined,
 			};
@@ -16,8 +15,8 @@ module.exports = (sequelize, DataTypes) => {
 		{
 			zip_code: DataTypes.STRING,
 			name: DataTypes.STRING,
-			lat: DataTypes.FLOAT,
-			lon: DataTypes.FLOAT,
+			latitude: DataTypes.FLOAT,
+			longitude: DataTypes.FLOAT,
 		},
 		{
 			sequelize,

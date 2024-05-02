@@ -1,8 +1,12 @@
 const { User } = require("../models");
+
 const jwtHelpers = require("../helpers/jwt");
 const jwt = require("jsonwebtoken");
+
 const passport = require("passport");
+
 const bcrypt = require("bcrypt");
+
 const saltRounds = parseInt(process.env.SALT_ROUNDS);
 
 module.exports = {
@@ -69,15 +73,7 @@ module.exports = {
 		}
 	},
 	async refreshToken(req, res) {
-		const { cookie } = req.headers;
-
-		if (!cookie) {
-			return res.status(403).json({ message: "No refresh token provided." });
-		}
-
-		const regex = /refreshToken=([^;]+)/;
-		const match = cookie.match(regex);
-		const refreshToken = match[1];
+		const { refreshToken } = req.cookies;
 
 		if (!refreshToken) {
 			return res.status(403).json({ message: "Invalid refresh token." });

@@ -2,14 +2,14 @@ const express = require("express");
 const errorHandler = require("../../middlewares/errorHandler.js");
 const contestController = require("../../controllers/Contest.js");
 const verifyToken = require("../../middlewares/verifyToken.js");
+
 const ContestRouter = express.Router();
 
 // Schemas
 
 /**
- * @name ContestEvent
- * @description Contest event
  * @typedef {object} ContestEvent
+ * @description Contest event
  * @property {number} id
  * @property {string} image_name
  * @property {number} city
@@ -20,39 +20,33 @@ const ContestRouter = express.Router();
  */
 
 /**
- * @name ContestWinner
- * @description ContestWinner
  * @typedef {object} ContestWinner
+ * @description ContestWinner
  * @property {number} id - user identifier
  * @property {string} image_url - event image name
  * @property {UserData} creator - event creator
  */
 
-/**
- * @name ContestEventSuccess
- * @description ContestEventSuccess
+/** ContestEventSuccess
  * @typedef {object} ContestEventSuccess
- * @property {ContestWinner} lastMonthEventWinner - Last month event winner
  * @property {Array<ContestEvent>} currentMonthEvents - An array of events
  */
+/** ContestEventWinnerSuccess
+ * @typedef {object} ContestEventWinnerSuccess
+ * @property {ContestWinner} lastMonthEventWinner - Last month event winner
+ */
 
-/**
- * @name ContestEventId
- * @description Event object
+/** Event object
  * @typedef {object} ContestEventId
  * @property {number} eventId.required - Event identifier
  */
 
-/**
- * @name ContestSuccess
- * @description Success object
+/** Success object
  * @typedef {object} ContestSuccess
  * @property {string} message - success message
  */
 
-/**
- * @name ContestError
- * @description Error object
+/** Error object
  * @typedef {object} ContestError
  * @property {string} message - error message
  */
@@ -61,14 +55,20 @@ const ContestRouter = express.Router();
 
 /**
  * GET /contest
- * @summary Get last month event winner and current month events
+ * @summary Get current month events
  * @tags Contest
- *
  * @security BearerAuth
- *
- * @returns {ContestEventSuccess} 200 - Last month event winner and current month events
+ * @returns {ContestEventSuccess} 200 - current month events
  */
-ContestRouter.get("/", errorHandler(contestController.contest));
+ContestRouter.get("/", verifyToken(), errorHandler(contestController.contest));
+
+/**
+ * GET /contest/winner
+ * @summary Get last month event winner
+ * @tags Contest
+ * @returns {ContestEventWinnerSuccess} 200 - Last month event winner
+ */
+ContestRouter.get("/winner", errorHandler(contestController.contestWinner));
 
 /**
  * POST /contest/like

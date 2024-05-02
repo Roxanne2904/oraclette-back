@@ -2,7 +2,7 @@ const Message = require("../models").Message;
 
 module.exports = () => async (req, res, next) => {
 	try {
-		const userId = res.userId;
+		const userId = res.currentUser.id;
 		const commentId = req.params.commentId;
 
 		const messageRetrieve = await Message.isMessageOwner(commentId, userId);

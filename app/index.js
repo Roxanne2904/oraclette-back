@@ -2,11 +2,14 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const session = require("express-session");
-const router = require("./routers");
-const app = express();
+const cookieParser = require("cookie-parser");
 
+const router = require("./routers");
+
+const app = express();
 require("./helpers/apiDocs")(app);
 
+app.use(cookieParser());
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(
 	bodyParser.urlencoded({

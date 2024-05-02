@@ -1,22 +1,22 @@
 const express = require("express");
+
 const errorHandler = require("../../middlewares/errorHandler.js");
 const ZipCodeController = require("../../controllers/ZipCode.js");
+
 const ZipCodeRouter = express.Router();
 
 // Schemas
 
 /**
- * @name ZipCode
- * @description An ZipCode have the following parameters :
  * @typedef {object} ZipCode
  * @property {number} id - ZipCode id
- * @property {string} zip_code - ZipCode
+ * @property {string} zip_code - ZipCode of the city
  * @property {string} name - City name
+ * @property {number} longitude - Latitude of the city - float
+ * @property {number} latitude - Longitude of the city - float
  */
 
 /**
- * @name ZipCodeError
- * @description Error object
  * @typedef {object} ZipCodeError
  * @property {string} message - error message
  */
@@ -34,8 +34,8 @@ const ZipCodeRouter = express.Router();
  * @typedef {object} Success - Success response
  * @property {string} message - A success message
  * @property {Array<ZipCode>} data - An array of ZipCodes
- * @returns {Success} 200 - A success message and an array of ZipCodes
- * @returns {ZipCodeError} 500 - Error
+ * @return {Success} 200 - A success message and an array of ZipCodes
+ * @return {ZipCodeError} 500 - Error
  */
 ZipCodeRouter.get("/similary", errorHandler(ZipCodeController.index));
 

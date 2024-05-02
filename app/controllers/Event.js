@@ -1,7 +1,23 @@
-const { Event, User } = require("../models");
+const {
+	Event,
+	User,
+	ZipCode,
+	Photo,
+	PhotoLike,
+	EventRegister,
+} = require("../models");
 const functions = require("../utils/functions");
+const jwt = require("jsonwebtoken");
+
 const fs = require("fs");
 const { Op, Sequelize } = require("sequelize");
+
+const DEFAULT_GENDER = ["nonbinary", "female", "male"];
+
+const handleGenderRequest = (gender = null) => {
+	if (gender) return [gender];
+	return DEFAULT_GENDER;
+};
 
 module.exports = {
 	async index(req, res) {
@@ -22,11 +38,12 @@ module.exports = {
 
 		if (city) filters.city = { [Op.substring]: city };
 
-		const genders = ["nonbinary"];
+		//! A garder au cas où
+		// const genders = ["nonbinary"];
+		// if (gender) genders.push(gender);
+		//!
 
-		if (gender) genders.push(gender);
-
-		filters.gender = { [Op.in]: genders };
+		filters.gender = { [Op.in]: handleGenderRequest(gender) };
 
 		const totalEvents = await Event.count({ where: filters });
 
@@ -36,19 +53,19 @@ module.exports = {
 		let distance;
 		if (lat && lon) {
 			// Valider que lat et lon sont des nombres et dans les plages valides
-			const position_lat = parseFloat(lat);
-			const position_lon = parseFloat(lon);
+			const latitude = parseFloat(lat);
+			const longitude = parseFloat(lon);
 			if (
-				!isNaN(position_lat) &&
-				!isNaN(position_lon) &&
-				position_lat >= -90 &&
-				position_lat <= 90 &&
-				position_lon >= -180 &&
-				position_lon <= 180
+				!isNaN(latitude) &&
+				!isNaN(longitude) &&
+				latitude >= -90 &&
+				latitude <= 90 &&
+				longitude >= -180 &&
+				longitude <= 180
 			) {
 				distance = Sequelize.literal(
 					// eslint-disable-next-line max-len
-					`ROUND(6371 * acos(cos(radians(${position_lat})) * cos(radians(position_lat)) * cos(radians(position_lon) - radians(${position_lon})) + sin(radians(${position_lat})) * sin(radians(position_lat))))`
+					`ROUND(6371 * acos(cos(radians(${latitude})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${longitude})) + sin(radians(${latitude})) * sin(radians(latitude))))`
 				);
 				order = [[distance, "ASC"]];
 				addDistance = true;
@@ -67,18 +84,24 @@ module.exports = {
 			offset: offset,
 		});
 
-		const formattedEvents = events.map((event) => {
-			const currentEvent = event.toJSON();
+		const formattedEvents = await Promise.all(
+			events.map(async (event) => {
+				const currentEvent = event.toJSON();
 
-			currentEvent.image_url =
-				process.env.URL_IMAGE_SERVER + currentEvent.image_name;
+				const image = await Photo.findOne({
+					where: { event_id: currentEvent.id },
+				});
 
-			delete currentEvent.image_name;
+				if (image) {
+					currentEvent.image_url =
+						process.env.URL_IMAGE_SERVER + image.file_name;
+				}
 
-			delete currentEvent.adress;
+				delete currentEvent.address; // Assurez-vous également que c'est bien 'address' et non 'adress'
 
-			return currentEvent;
-		});
+				return currentEvent;
+			})
+		);
 
 		return res.status(200).json({
 			message: "ok",
@@ -88,8 +111,67 @@ module.exports = {
 			},
 		});
 	},
+	async dislike(req, res) {
+		const event = await Event.findByPk(req.params.id);
+		if (event === null) {
+			return res.status(404).json({ error: "Event not found" });
+		}
+
+		const photo = await Photo.findOne({ where: { event_id: event.id } });
+		if (photo === null) {
+			return res.status(404).json({ error: "Photo not found" });
+		}
+
+		const like = await PhotoLike.findOne({
+			where: { photo_id: photo.id, user_id: res.currentUser.id },
+		});
+
+		if (like === null) {
+			return res.status(409).json({ error: "Not liked" });
+		}
+
+		await like.destroy();
+
+		return res.status(200).json({ message: "OK" });
+	},
+	async like(req, res) {
+		const event = await Event.findByPk(req.params.id);
+		if (event === null) {
+			return res.status(404).json({ error: "Event not found" });
+		}
+
+		const photo = await Photo.findOne({
+			where: { event_id: event.id },
+		});
+
+		if (photo === null) {
+			return res.status(404).json({ error: "Photo not found" });
+		}
+
+		const like = await PhotoLike.findOne({
+			where: { photo_id: photo.id, user_id: res.currentUser.id },
+		});
+
+		if (like != null) {
+			return res.status(409).json({ error: "Already like" });
+		}
+
+		const photoLike = await PhotoLike.create({
+			photo_id: photo.id,
+			user_id: res.currentUser.id,
+		});
+
+		if (!photoLike) {
+			return res.status(404).json({
+				error: "PhotoLike registration failed",
+			});
+		}
+
+		return res.status(202).json({ message: "OK" });
+	},
 	async show(req, res) {
 		const { id: eventId } = req.params;
+		const userFromToken = res.currentUser.dataValues.id;
 
 		if (eventId < 1) {
 			return res.status(400).json({ message: "Missing or invalid event id" });
@@ -101,7 +183,7 @@ module.exports = {
 				{
 					model: User,
 					as: "creator",
-					foreignKey: "created_by",
+					foreignKey: "user_id",
 				},
 				{
 					model: User,
@@ -116,12 +198,15 @@ module.exports = {
 		}
 
 		const eventData = event.toJSON();
-		if (event.image_name) {
-			eventData.image_url = process.env.URL_IMAGE_SERVER + event.image_name;
+		const image = await Photo.findOne({
+			where: { event_id: eventData.id },
+		});
+
+		if (image) {
+			eventData.image_url = process.env.URL_IMAGE_SERVER + image.file_name;
 		} else {
 			eventData.image_url = null;
 		}
-		delete eventData.image_name;
 
 		const participants = eventData.participants.map((participant) => ({
 			id: participant.id,
@@ -143,8 +228,14 @@ module.exports = {
 		const awaitingParticipants = participants.filter(
 			(participant) => participant.status === "awaiting"
 		);
+		const banParticipants = participants.filter(
+			(participant) => participant.status === "banned"
+		);
 
 		// Hide adresse if user not in party
+		//? TO CHECK - Répétition non ? On récupère le currentUserId depuis
+		//? le middleware "verifyToken"
+
 		let userId = null;
 		let token;
 		if (
@@ -157,8 +248,9 @@ module.exports = {
 			try {
 				userId = await functions.getUserId(token);
 				res.userId = userId;
-				// eslint-disable-next-line no-empty
-			} catch (err) {}
+			} catch (err) {
+				throw err;
+			}
 		}
 		const userIsInside = acceptedParticipants.some(
 			(user) => user.id === userId
@@ -168,6 +260,13 @@ module.exports = {
 			delete eventData.adress;
 		}
 
+		const currentUserFromParticipants = participants.find((user) => {
+			return user.id === userFromToken;
+		});
+		const currentParticipantStatus = currentUserFromParticipants
+			? currentUserFromParticipants.status
+			: [];
+
 		return res.status(200).json({
 			message: "ok",
 			data: {
@@ -175,13 +274,16 @@ module.exports = {
 				participants: acceptedParticipants,
 				refused: refusedParticipants,
 				awaiting: awaitingParticipants,
+				banned: banParticipants,
+				current_participant_status: currentParticipantStatus,
 			},
 		});
 	},
 	async store(req, res) {
-		const userId = res.userId;
-
-		const event = await Event.create({ ...req.body, created_by: userId });
+		const event = await Event.create({
+			...req.body,
+			user_id: res.currentUser.id,
+		});
 
 		res.eventId = event.dataValues.id;
 
@@ -194,8 +296,8 @@ module.exports = {
 			event.zip_code,
 			event.city
 		);
-		event.position_lat = geo_coded.lat;
-		event.position_lon = geo_coded.lon;
+		event.latitude = geo_coded.lat;
+		event.longitude = geo_coded.lon;
 		event.save();
 
 		return res.status(200).json({
@@ -220,8 +322,12 @@ module.exports = {
 		}
 
 		if (req.body.base64_picture) {
+			const existingPhoto = await Photo.findOne({
+				where: { event_id: event.id },
+			});
+
 			// Supprimer l'image si il en exister déjà une.
-			if (event.image_name) {
+			if (existingPhoto) {
 				fs.unlink(`./public_pictures/${event.image_name}`, () => {});
 				event.image_name = null;
 				event.save();
@@ -229,9 +335,15 @@ module.exports = {
 
 			await functions
 				.storePicture(req.body.base64_picture)
-				.then((pictureName) => {
-					event.image_name = pictureName;
-					event.save();
+				.then(async (pictureName) => {
+					if (existingPhoto) {
+						await existingPhoto.update({ file_name: pictureName });
+					} else {
+						await Photo.create({
+							file_name: pictureName,
+							event_id: event.id,
+						});
+					}
 				})
 				.catch((error) => {
 					throw new Error(error);
@@ -245,8 +357,8 @@ module.exports = {
 			event.zip_code,
 			event.city
 		);
-		event.position_lat = geo_coded.lat;
-		event.position_lon = geo_coded.lon;
+		event.latitude = geo_coded.lat;
+		event.longitude = geo_coded.lon;
 		event.save();
 
 		return res.status(200).json({

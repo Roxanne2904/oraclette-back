@@ -1,12 +1,11 @@
-@startuml usecase
-
+@startuml
 left to right direction
 
-actor Visiteur as v
-actor Utilisateur as u
-actor Organisateur as o
-actor Participant as p
-actor Administrateur as a
+actor Visiteur as vis
+actor Utilisateur as util
+actor Organisateur as orga
+actor Participant as parti
+actor Administrateur as admin
 
 package "Fonctionnalités principales" {
   usecase "Créer un compte" as createAccount
@@ -42,39 +41,41 @@ package "Fonctionnalités évolutives" {
   usecase "Voir l'événement de mois précédent affiché sur la home" as seePastMonthTopEvent
 }
 
-v --> createAccount
-v --> authProviders
-v --> seePictures
-v --> seeEvents
-v --> seePastMonthTopEvent
-v --> contact
-v --> legalNotice
-v --> resetPassword
+vis --> createAccount
+vis --> authProviders
+vis --> seePictures
+vis --> seeEvents
+vis --> seePastMonthTopEvent
+vis --> contact
+vis --> legalNotice
+vis --> resetPassword
 
-u --> createEvent
-u --> seeMyEvents
-u --> editProfileInfos
-u --> likePicture
-u --> subscribeToEvent
-u --> subscribeToUser
-u --> subscriptionFeed
-u --> suggestLocation
+util --> createEvent
+util --> seeMyEvents
+util --> editProfileInfos
+util --> likePicture
+util --> subscribeToEvent
+util --> subscribeToUser
+util --> subscriptionFeed
+util --> suggestLocation
 
-o --> acceptParticipant
-o --> editEvent
-o --> kickParticipant
-o --> hideMessage
-o --> addPicture
+orga --> acceptParticipant
+orga --> editEvent
+orga --> kickParticipant
+orga --> hideMessage
+orga --> addPicture
 
-p --> eventTalk
-p --> quitEvent
-p --> confirmParticipation
-p --> defineContributions
-p --> instantMessaging
+parti --> eventTalk
+parti --> quitEvent
+parti --> confirmParticipation
+parti --> defineContributions
+parti --> instantMessaging
 
-a --> confirmLocation
-a --> modEvent
+admin --> confirmLocation
+admin --> modEvent
 
-u <|-- p
-p <|-- o
+admin --|> orga
+orga --|> parti
+parti --|> util
+parti --|> vis
 @enduml

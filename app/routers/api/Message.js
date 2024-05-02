@@ -1,15 +1,15 @@
 const express = require("express");
+
 const errorHandler = require("../../middlewares/errorHandler");
 const isMessageOwner = require("../../middlewares/isMessageOwner");
 const isParticipant = require("../../middlewares/isParticipant");
 const verifyToken = require("../../middlewares/verifyToken");
 const MessageController = require("../../controllers/Message");
 const isAuthor = require("../../middlewares/isAuthor");
+const validateMessage = require("../../middlewares/message/validateMessage");
 const MessageRouter = express.Router();
 
-/**
- * @name MessageBody
- * @description Message
+/** Message
  * @typedef {object} MessageBody
  * @property {string} message - event message
  */
@@ -39,6 +39,7 @@ MessageRouter.post(
 	"/:eventId",
 	verifyToken(),
 	isParticipant(),
+	validateMessage(),
 	errorHandler(MessageController.addMessage)
 );
 
@@ -59,6 +60,7 @@ MessageRouter.patch(
 	"/:commentId",
 	verifyToken(),
 	isMessageOwner(),
+	validateMessage(),
 	errorHandler(MessageController.updateMessage)
 );
 /**
@@ -83,7 +85,7 @@ MessageRouter.patch(
 
 /**
  * @typedef {object} UserMessage
- * @property {number} id - user id
+ * @property {number} id - user id PK
  * @property {string} firstname - firstname
  * @property {string} lastname - lastname
  * @property {string} email - email
@@ -94,17 +96,18 @@ MessageRouter.patch(
 /**
  * @typedef {object} EventMessage
  * @property {number} id - event id
- * @property {number} created_by - user id
+ * @property {number} user_id - user id FK
  */
 
 /**
  * @typedef {object} Message
+ * @property {number} id - message id PK
  * @property {string} message - message
- * @property {string} createdAt - message creation date
- * @property {string} updatedAt - message update date
+ * @property {string} createdAt - message creation date IsoString
+ * @property {string} updatedAt - message update date IsoString
  * @property {boolean} disabled - message disabled
- * @property {number} writed_by - user id
- * @property {number} event_id - event id
+ * @property {number} user_id - user id FK
+ * @property {number} event_id - event id FK
  * @property {UserMessage} user - user message
  * @property {EventMessage} event - event message
  */

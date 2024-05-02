@@ -1,7 +1,8 @@
 const jwt = require("jsonwebtoken");
-const dotenv = require("dotenv");
-dotenv.config();
 
+const dotenv = require("dotenv");
+
+dotenv.config();
 module.exports = {
 	jwtTokens(userdata) {
 		let user;

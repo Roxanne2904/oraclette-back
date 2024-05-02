@@ -1,134 +1,175 @@
 const { Op, Sequelize } = require("sequelize");
 const jwt = require("jsonwebtoken");
-const { Event, EventLike, User } = require("../models");
+const { Event, PhotoLike, Photo, User } = require("../models");
 const functions = require("../utils/functions");
 
-module.exports = {
-	async contest(req, res) {
-		const { authorization: bearer } = req.headers;
+const formatEventPhotoData = (element) => {
+	const likes = element.likes.reduce((acc, val) => acc.concat(val.user_id), []);
 
-		let userId = null;
+	return {
+		file_name: element.file_name,
+		id: element.id,
+		liked_by: likes,
+	};
+};
 
-		if (bearer) {
-			const token = await functions.removeBearerFromToken(bearer, res);
-
-			jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-
-			userId = await functions.getUserId(token);
-		}
-
-		const currentDate = new Date();
-
-		const currentMonthStart = new Date(
-			currentDate.getFullYear(),
-			currentDate.getMonth() - 1,
-			1
-		);
-		const currentMonthEnd = new Date(
+const handleDates = () => {
+	const currentDate = new Date();
+	return {
+		// Dernier jour du mois courrant
+		endOfLastMonth: new Date(
 			currentDate.getFullYear(),
 			currentDate.getMonth(),
-			0
-		);
+			0 // 0 indique le dernier jour du mois
+		),
 
-		const lastMonthStart = new Date(
+		// Premier jour du mois en cours - 2
+		lastMonthStart: new Date(
 			currentDate.getFullYear(),
 			currentDate.getMonth() - 2,
 			1
-		);
-		const lastMonthEnd = new Date(
+		),
+		// Dernier jours du mois précédent
+		lastMonthEnd: new Date(
 			currentDate.getFullYear(),
-			currentDate.getMonth(),
+			currentDate.getMonth() - 1,
 			0
-		);
+		),
+	};
+};
 
-		const popularityRatioCalcQuery =
-			"(Event.available_slot / (SELECT COUNT(*) FROM EventRegisters WHERE EventRegisters.event_id = Event.id))";
+module.exports = {
+	async contestWinner(_, res) {
+		const { lastMonthStart, lastMonthEnd } = handleDates();
 
-		const monthEventsAttributes = [
-			"id",
-			"image_name",
-			"city",
-			"date",
-			"available_slot",
-			[Sequelize.literal(popularityRatioCalcQuery), "popularity_ratio"],
-		];
-
-		if (userId) {
-			monthEventsAttributes.push([
-				Sequelize.literal(
-					`(EXISTS(SELECT 1 FROM EventLikes WHERE EventLikes.event_id = Event.id AND EventLikes.liked_by = ${userId}))`
-				),
-				"is_liked_by_user",
-			]);
-		}
-
-		const currentMonthEvents = await Event.findAll({
-			attributes: monthEventsAttributes,
-			where: {
-				date: {
-					[Op.between]: [currentMonthStart, currentMonthEnd],
-				},
+		let lastMonthEventWinner = await Event.findOne({
+			attributes: {
+				include: [
+					[
+						Sequelize.fn("COUNT", Sequelize.col("photo->likes.photo_id")),
+						"totalLikes",
+					],
+				],
 			},
 			include: [
 				{
-					model: User,
-					as: "participants",
-					attributes: [],
-					through: { attributes: [] },
-				},
-			],
-			order: [[Sequelize.literal(popularityRatioCalcQuery), "ASC"]],
-			group: ["Event.id"],
-			limit: 12,
-		});
-
-		const lastMonthMostLikedEvent = await EventLike.findOne({
-			attributes: [
-				"event_id",
-				[Sequelize.fn("COUNT", Sequelize.col("liked_by")), "like_count"],
-			],
-			include: [
-				{
-					model: Event,
-					where: {
-						date: {
-							[Op.between]: [lastMonthStart, lastMonthEnd],
+					model: Photo,
+					as: "photo",
+					attributes: ["file_name"],
+					required: true, // Assurez-vous que seuls les événements ayant une photo sont inclus
+					include: [
+						{
+							model: PhotoLike,
+							as: "likes",
+							attributes: [],
 						},
-					},
+					],
 				},
-			],
-			group: ["event_id"],
-			order: [[Sequelize.literal("like_count"), "DESC"]],
-		});
-
-		const lastMonthEventWinner = await Event.findOne({
-			attributes: ["id", "image_name", "date"],
-			where: {
-				id: lastMonthMostLikedEvent.event_id,
-			},
-			include: [
 				{
 					model: User,
 					as: "creator",
-					attributes: ["firstname"],
 				},
 			],
+			group: ["Event.id", "photo.id", "photo->likes.photo_id", "creator.id"],
+			order: [[Sequelize.literal("totalLikes"), "DESC"]],
+			where: {
+				date: {
+					[Sequelize.Op.gte]: lastMonthStart,
+					[Sequelize.Op.lt]: lastMonthEnd,
+				},
+			},
+			limit: 1,
+			subQuery: false,
 		});
+
+		lastMonthEventWinner = lastMonthEventWinner.toJSON();
+
+		lastMonthEventWinner.image_url =
+			process.env.URL_IMAGE_SERVER + lastMonthEventWinner.photo.file_name;
+		delete lastMonthEventWinner.photo;
 
 		return res.status(200).json({
 			message: "ok",
 			data: {
 				lastMonthEventWinner,
+			},
+		});
+	},
+	async contest(_, res) {
+		const { lastMonthEnd, endOfLastMonth } = handleDates();
+
+		const events = await Event.findAll({
+			include: [
+				{
+					model: Photo,
+					as: "photo",
+					attributes: ["file_name", "id"],
+					required: true,
+					include: [
+						{
+							model: PhotoLike,
+							as: "likes",
+							required: false,
+							where: {
+								user_id: res.currentUser.id,
+							},
+							attributes: {
+								exclude: ["createdAt", "updatedAt", "photo_id"],
+							},
+						},
+					],
+				},
+			],
+			limit: 12,
+			order: Sequelize.literal("RAND()"),
+			where: {
+				date: {
+					[Sequelize.Op.gte]: lastMonthEnd,
+					[Sequelize.Op.lt]: endOfLastMonth,
+				},
+			},
+		});
+
+		const currentMonthEvents = await Promise.all(
+			events.map(async (event) => {
+				const eventJson = event.toJSON();
+
+				const getPhoto = await event.getPhoto();
+
+				if (getPhoto) {
+					const imageUrl = process.env.URL_IMAGE_SERVER + getPhoto.file_name;
+					const getLiked = await getPhoto.getIsLikedBy(res.currentUser);
+
+					return {
+						...eventJson,
+						image_url: imageUrl,
+						is_liked_by_user: getLiked ? true : false,
+						photo: formatEventPhotoData(eventJson.photo),
+					};
+				}
+
+				return eventJson;
+			})
+		);
+
+		return res.status(200).json({
+			message: "ok",
+			data: {
 				currentMonthEvents,
 			},
 		});
 	},
+	async unlike(req, res) {
+		await like(req, res);
+	},
 	async like(req, res) {
+		console.log("****************************");
+		console.log(res.currentUser);
+		console.log(res.currentUser);
+		console.log(res.currentUser);
+		console.log(res.currentUser);
+		console.log("****************************");
 		const { eventId } = req.body;
-
-		if (!eventId) {
-			return res.status(400).json({ message: "Missing or invalid event id" });
-		}
 
 		const event = await Event.findByPk(eventId);
 
@@ -136,23 +177,23 @@ module.exports = {
 			return res.status(404).json({ message: "Event not found" });
 		}
 
-		const eventLiked = await EventLike.findOne({
+		const photoLiked = await PhotoLike.findOne({
 			where: {
 				event_id: eventId,
-				liked_by: res.userId,
+				user_id: res.currentUser.id,
 			},
 		});
 
 		let statusMessage = "Event successfully liked";
 
-		if (eventLiked) {
-			await eventLiked.destroy();
+		if (photoLiked) {
+			await photoLiked.destroy();
 
 			statusMessage = "Event successfully unliked";
 		} else {
-			await EventLike.create({
+			await PhotoLike.create({
 				event_id: eventId,
-				liked_by: res.userId,
+				user_id: res.currentUser.id,
 			});
 		}
 

@@ -6,6 +6,7 @@ const { EventRouter } = require("./Event");
 const { EventManagementRouter } = require("./EventManagement");
 const { MessageRouter } = require("./Message");
 const { ContestRouter } = require("./Contest.js");
+
 const router = express.Router();
 
 router.all("/", (req, res) => {

@@ -23,9 +23,8 @@ const UserRouter = express.Router();
  */
 
 /**
- * @name UserError
- * @description Error object
  * @typedef {object} UserError
+ * @description Error object
  * @property {string} message - error message
  */
 

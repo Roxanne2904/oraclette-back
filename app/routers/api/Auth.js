@@ -1,15 +1,15 @@
 const express = require("express");
+
 const errorHandler = require("../../middlewares/errorHandler");
 const AuthController = require("../../controllers/Auth");
 const passport = require("passport");
 const jwtHelpers = require("../../helpers/jwt");
+
 const AuthRouter = express.Router();
 
 // Schemas
 
-/**
- * @name RegisterUser
- * @description Register a new user
+/** Register a new user
  * @typedef {object} RegisterUser
  * @property {string} firstname - user firstname
  * @property {string} lastname - user lastname
@@ -19,25 +19,19 @@ const AuthRouter = express.Router();
  * @property {string} gender - user gender - enum:female,male,nonbinary
  */
 
-/**
- * @name LoginUser
- * @description Login a user
+/** Login a user
  * @typedef {object} LoginUser
  * @property {string} email.required - user firstname
  * @property {string} password.required - user password
  * @property {string} loginType - login type -  enum:local,google,facebook,instagram
  */
 
-/**
- * @name Token
- * @description New access token
+/** New access token
  * @typedef {object} Token
  * @property {string} access_token - new access token
  */
 
-/**
- * @name AuthError
- * @description Error object
+/** Error object
  * @typedef {object} AuthError
  * @property {string} message - error message
  */

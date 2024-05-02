@@ -6,7 +6,7 @@ const { User, Event } = require("../app/models");
 module.exports = {
 	async up(queryInterface, Sequelize) {
 		try {
-			const events = await Event.findAll({ attributes: ["id", "created_by"] });
+			const events = await Event.findAll({ attributes: ["id", "user_id"] });
 			const users = await User.findAll({ attributes: ["id"] });
 
 			const eventIds = events.map((event) => event.id);
@@ -24,13 +24,13 @@ module.exports = {
 					.slice(0, numRegistrations);
 
 				for (let userId of selectedUserIds) {
-					const isCreator = events.find((event) => event.created_by === userId);
+					const isCreator = events.find((event) => event.user_id === userId);
 
 					if (isCreator) {
 						eventRegistersData.push({
 							status: faker.helpers.arrayElement(["accepted"]),
 							event_id: eventId,
-							register_by: userId,
+							user_id: userId,
 						});
 					} else {
 						eventRegistersData.push({
@@ -41,7 +41,7 @@ module.exports = {
 								"banned",
 							]),
 							event_id: eventId,
-							register_by: userId,
+							user_id: userId,
 						});
 					}
 				}

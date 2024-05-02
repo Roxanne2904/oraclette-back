@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
 				as: "event",
 			});
 			Message.belongsTo(models.User, {
-				foreignKey: "writed_by",
+				foreignKey: "user_id",
 				onDelete: "CASCADE",
 				as: "user",
 			});
@@ -26,7 +26,7 @@ module.exports = (sequelize, DataTypes) => {
 
 		static async isMessageOwner(commentId, userId) {
 			const message = await this.findOne({
-				where: { id: commentId, writed_by: userId },
+				where: { id: commentId, user_id: userId },
 			});
 			if (!message) return false;
 
@@ -39,7 +39,7 @@ module.exports = (sequelize, DataTypes) => {
 			message: DataTypes.TEXT,
 			disabled: DataTypes.BOOLEAN,
 			event_id: DataTypes.INTEGER,
-			writed_by: DataTypes.INTEGER,
+			user_id: DataTypes.INTEGER,
 		},
 		{
 			sequelize,

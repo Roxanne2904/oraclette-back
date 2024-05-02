@@ -94,7 +94,6 @@ module.exports = {
 					model: User,
 					as: "participants",
 					where: { id: userId },
-					through: { attributes: [] },
 				},
 			],
 		});
@@ -116,8 +115,6 @@ module.exports = {
 		const totalEvents = events.length;
 
 		events = events.slice(offset, offset + eventPerPage);
-
-		console.log(events);
 
 		if (!events || events.length === 0) {
 			return res.status(404).json({

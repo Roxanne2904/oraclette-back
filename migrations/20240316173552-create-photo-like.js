@@ -1,19 +1,19 @@
 "use strict";
-
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
 	async up(queryInterface, Sequelize) {
-		await queryInterface.createTable("EventLikes", {
-			event_id: {
+		await queryInterface.createTable("PhotoLikes", {
+			photo_id: {
 				type: Sequelize.INTEGER.UNSIGNED,
 				allowNull: false,
 				references: {
-					model: "Events",
+					model: "Photos",
 					key: "id",
 				},
 				onUpdate: "CASCADE",
 				onDelete: "CASCADE",
 			},
-			liked_by: {
+			user_id: {
 				type: Sequelize.INTEGER.UNSIGNED,
 				allowNull: false,
 				references: {
@@ -24,20 +24,22 @@ module.exports = {
 				onDelete: "CASCADE",
 			},
 			createdAt: {
-				allowNull: false,
 				type: Sequelize.DATE,
+				allowNull: false,
 				defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
 			},
 			updatedAt: {
-				allowNull: true,
 				type: Sequelize.DATE,
+				allowNull: true,
 			},
 		});
-		await queryInterface.addIndex("EventLikes", ["event_id", "liked_by"], {
-			unique: true,
+		await queryInterface.addConstraint("PhotoLikes", {
+			fields: ["photo_id", "user_id"],
+			type: "primary key",
+			name: "photo_likes_primary_key", // Nom de la contrainte, optionnel mais recommandé
 		});
 	},
-	async down(queryInterface) {
-		await queryInterface.dropTable("EventLikes");
+	async down(queryInterface, Sequelize) {
+		await queryInterface.dropTable("PhotoLikes");
 	},
 };

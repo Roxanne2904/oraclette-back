@@ -1,10 +1,11 @@
 const express = require("express");
+
 const errorHandler = require("../../middlewares/errorHandler");
 const EventManagementController = require("../../controllers/EventManagement");
 const isParticipant = require("../../middlewares/isParticipant");
 const isAuthor = require("../../middlewares/isAuthor");
-const isMessageOwner = require("../../middlewares/isMessageOwner");
 const verifyToken = require("../../middlewares/verifyToken");
+
 const EventManagementRouter = express.Router();
 
 /**
@@ -15,8 +16,8 @@ const EventManagementRouter = express.Router();
  * @typedef {object} EventRegisterData
  * @property {string} status - eventRegister status - enum:awaiting, accepted, refused, banned
  * @property {number} event_id - eventRegister event_id
- * @property {number} register_by - eventRegister register_by
- * @property {number} register_by - eventRegister register_by
+ * @property {number} user_id - eventRegister registed by user_id
+//  * @property {number} register_by - eventRegister register_by
  * @property {string} updatedAt - eventRegister updatedAt
  * @property {string} createdAt - eventRegister createdAt
  */
@@ -119,7 +120,7 @@ EventManagementRouter.patch(
  * @property {string} error - user has already been accepted
  */
 /**
- * PATCH /eventManagement/{eventId}/refuse/{userId}
+ * DELETE /eventManagement/{eventId}/refuse/{userId}
  * @summary Refuse a user to an event
  * @tags EventManagement
  * @param {number} eventId.path.required - event identify
@@ -131,7 +132,7 @@ EventManagementRouter.patch(
  * @returns {EventRegisterResponse404} 404 - User is not registered for this event
  * @returns {EventRegisterRefuseResponse409} 409 - user has already been refused
  */
-EventManagementRouter.patch(
+EventManagementRouter.delete(
 	"/:eventId/refuse/:userId",
 	verifyToken(),
 	isAuthor(),

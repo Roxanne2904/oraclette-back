@@ -1,17 +1,13 @@
-const { EventRegister } = require("../models");
+const eventRegisterService = require("../services/EventRegister");
 
 module.exports = {
 	async joinEvent(req, res) {
-		const joinEvent = await EventRegister.create({
-			event_id: parseInt(req.body.eventId),
-			register_by: res.userId,
-			status: "awaiting",
-		});
-		if (!joinEvent) {
+		const joinEvent = await eventRegisterService.create(req, res);
+
+		if (!joinEvent)
 			return res.status(404).json({
 				error: "EventRegister registration failed",
 			});
-		}
 
 		return res.json({
 			message: "You've been correctly registered",
@@ -19,18 +15,12 @@ module.exports = {
 		});
 	},
 	async leaveEvent(req, res) {
-		console.log("Leaving Event");
-		const leaveEvent = await EventRegister.destroy({
-			where: {
-				event_id: parseInt(req.body.eventId),
-				register_by: res.userId,
-			},
-		});
-		if (!leaveEvent) {
+		const leaveEvent = await eventRegisterService.destroy(req, res);
+
+		if (!leaveEvent)
 			return res.status(404).json({
 				error: "EventRegister registration failed",
 			});
-		}
 
 		return res.json({
 			message: "You've been correctly unregistered",
@@ -38,20 +28,12 @@ module.exports = {
 		});
 	},
 	async acceptUser(req, res) {
-		const acceptUser = await EventRegister.update(
-			{ status: "accepted" },
-			{
-				where: {
-					event_id: parseInt(req.params.eventId),
-					register_by: req.params.userId,
-				},
-			}
-		);
-		if (!acceptUser) {
+		const acceptUser = await eventRegisterService.accept(req);
+
+		if (!acceptUser)
 			return res.status(404).json({
 				error: "EventRegister registration failed",
 			});
-		}
 
 		return res.json({
 			message: "You've been correctly registered",
@@ -59,17 +41,12 @@ module.exports = {
 		});
 	},
 	async refuseUser(req, res) {
-		const leaveEvent = await EventRegister.destroy({
-			where: {
-				event_id: parseInt(req.params.eventId),
-				register_by: req.params.userId,
-			},
-		});
-		if (!leaveEvent) {
+		const leaveEvent = await eventRegisterService.destroy(req, res);
+
+		if (!leaveEvent)
 			return res.status(404).json({
 				error: "Error refusing user",
 			});
-		}
 
 		return res.json({
 			message: "You've correctly refused the user",
@@ -77,20 +54,12 @@ module.exports = {
 		});
 	},
 	async banUser(req, res) {
-		const banUser = await EventRegister.update(
-			{ status: "banned" },
-			{
-				where: {
-					event_id: parseInt(req.params.eventId),
-					register_by: req.params.userId,
-				},
-			}
-		);
-		if (!banUser) {
+		const banUser = await eventRegisterService.ban(req);
+
+		if (!banUser)
 			return res.status(404).json({
 				error: "EventRegister registration failed",
 			});
-		}
 
 		return res.json({
 			message: "You've been correctly registered",

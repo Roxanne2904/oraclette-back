@@ -29,7 +29,7 @@ module.exports = {
 				onUpdate: "CASCADE",
 				onDelete: "CASCADE",
 			},
-			writed_by: {
+			user_id: {
 				type: Sequelize.INTEGER.UNSIGNED,
 				allowNull: false,
 				references: {

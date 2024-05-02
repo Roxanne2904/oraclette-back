@@ -8,23 +8,22 @@ module.exports = (sequelize, DataTypes) => {
 			Event.belongsToMany(models.User, {
 				through: models.EventRegister,
 				foreignKey: "event_id",
-				otherKey: "register_by",
+				otherKey: "user_id",
 				as: "participants",
-			});
-
-			Event.belongsToMany(models.User, {
-				through: models.EventLike,
-				foreignKey: "event_id",
-				otherKey: "liked_by",
-				as: "likers",
 			});
 
 			Event.belongsTo(models.User, {
 				as: "creator",
-				foreignKey: "created_by",
+				foreignKey: "user_id",
+			});
+
+			Event.hasOne(models.Photo, {
+				foreignKey: "event_id",
+				as: "photo",
 			});
 		}
 
+		// Efface les champs inutile dans le retour
 		toJSON() {
 			return {
 				...this.get(),
@@ -33,11 +32,17 @@ module.exports = (sequelize, DataTypes) => {
 			};
 		}
 
+		async getPhoto() {
+			return await sequelize.models.Photo.findOne({
+				where: { event_id: this.id },
+			});
+		}
+
 		static async checkIfEventAuthor(eventId, userId) {
 			const event = await Event.findOne({
 				where: {
 					id: eventId,
-					created_by: userId,
+					user_id: userId,
 				},
 			});
 
@@ -52,7 +57,7 @@ module.exports = (sequelize, DataTypes) => {
 			super.init(attributes, options);
 
 			this.addHook("afterCreate", async (event) => {
-				const userId = event.created_by;
+				const userId = event.user_id;
 
 				await event.addAuthorAsParticipants(userId, "accepted");
 			});
@@ -65,7 +70,7 @@ module.exports = (sequelize, DataTypes) => {
 
 			const eventRegister = await sequelize.models.EventRegister.create({
 				event_id: event.id,
-				register_by: userId,
+				user_id: userId,
 				status: status,
 			});
 
@@ -78,36 +83,31 @@ module.exports = (sequelize, DataTypes) => {
 			description: {
 				type: DataTypes.TEXT,
 				allowNull: false,
-				validate: {
-					notEmpty: true,
-				},
 			},
 			adress: {
 				type: DataTypes.TEXT,
 				allowNull: false,
-				validate: {
-					notEmpty: true,
-				},
 			},
 			zip_code: {
 				type: DataTypes.STRING(5),
 				allowNull: false,
 				validate: {
 					notEmpty: true,
+					is: {
+						args: ["^[0-9]{5}$"],
+						msg: "Le format du code postal est invalide.",
+					},
 				},
 			},
 			city: {
 				type: DataTypes.TEXT,
 				allowNull: false,
-				validate: {
-					notEmpty: true,
-				},
 			},
-			position_lat: {
+			latitude: {
 				type: DataTypes.FLOAT,
 				allowNull: true,
 			},
-			position_lon: {
+			longitude: {
 				type: DataTypes.FLOAT,
 				allowNull: true,
 			},
@@ -123,6 +123,12 @@ module.exports = (sequelize, DataTypes) => {
 				allowNull: false,
 				validate: {
 					isDate: true,
+					isAfterToday(value) {
+						if (new Date(value) < new Date()) {
+							// Lancer une erreur si la date est antérieur à aujourd'hui
+							throw new Error("La date doit être postérieure à aujourd'hui.");
+						}
+					},
 				},
 			},
 			status: {
@@ -135,11 +141,7 @@ module.exports = (sequelize, DataTypes) => {
 				allowNull: true,
 				defaultValue: "nonbinary",
 			},
-			image_name: {
-				type: DataTypes.TEXT,
-				allowNull: true,
-			},
-			created_by: {
+			user_id: {
 				type: DataTypes.INTEGER.UNSIGNED,
 				allowNull: false,
 				references: {

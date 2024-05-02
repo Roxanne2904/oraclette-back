@@ -2,15 +2,11 @@ const { Event } = require("../models");
 
 module.exports = () => async (req, res, next) => {
 	try {
-		let eventId;
-
-		if (req.params.eventId) {
-			eventId = req.params.eventId;
-		} else {
-			eventId = req.params.event_id;
-		}
-
-		const isEventAuthor = await Event.checkIfEventAuthor(eventId, res.userId);
+		const eventId = req.params.eventId ?? req.params.event_id; // au cas où mais bon ...
+		const isEventAuthor = await Event.checkIfEventAuthor(
+			eventId,
+			res.currentUser.id
+		);
 
 		if (isEventAuthor) {
 			next();

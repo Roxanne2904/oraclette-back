@@ -15,19 +15,20 @@ module.exports = {
 			name: {
 				type: Sequelize.STRING,
 			},
-			lat: {
+			latitude: {
 				type: Sequelize.FLOAT,
 			},
-			lon: {
+			longitude: {
 				type: Sequelize.FLOAT,
 			},
 			createdAt: {
-				allowNull: false,
 				type: Sequelize.DATE,
+				allowNull: false,
+				defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
 			},
 			updatedAt: {
-				allowNull: false,
 				type: Sequelize.DATE,
+				allowNull: true,
 			},
 		});
 	},

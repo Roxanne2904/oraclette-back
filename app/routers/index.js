@@ -1,12 +1,14 @@
 const express = require("express");
+
 const apiRouter = require("./api");
+
 const router = express.Router();
 
 // Les routes pour l'API
 router.use("/api/v1", apiRouter);
 
-router.all("/", (_, res) => {
-	res.send(`Welcome to - O'Raclette API -`);
+router.all("/", (req, res) => {
+	res.send("ORaclette API");
 });
 
 // Gestion 404
